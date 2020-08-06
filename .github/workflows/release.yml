@@ -26,7 +26,9 @@ jobs:
             target
           key: ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Install dependencies
-        run: sudo apt-get install wkhtmltopdf
+        run: |
+          wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb
+          sudo dpkg -i wkhtmltox_0.12.5-1.bionic_amd64.deb
       - name: Build project
         run: cargo build --release --locked
       - name: Upload binary to release
