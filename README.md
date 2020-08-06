@@ -8,6 +8,8 @@
 4. uses `wkhtmltopdf` to convert the HTML into a PDF with QtWebKit; and
 5. writes the output to either stdout or a provided file.
 
+Each SVG will have its own page.
+
 ## Installation
 
 See [the releases](https://github.com/alexpriv/svg2pdf/releases). [`wkhtmltopdf`](https://wkhtmltopdf.org) is also required.
