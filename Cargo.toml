@@ -1,0 +1,12 @@
+[package]
+name = "svg2pdf"
+version = "0.1.0"
+description = "A utility that converts two SVG vectors into one PDF document"
+authors = ["Alex Pedley"]
+edition = "2018"
+
+[dependencies]
+wkhtmltopdf = "0.3.0"
+structopt = "0.3.13"
+env_logger = "0.7.1"
+log = "0.4.11"
