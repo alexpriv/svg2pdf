@@ -1,0 +1,60 @@
+name: Build and upload executables to release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+    name: Build and release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: target/release/svg2pdf
+            asset_name: svg2pdf-linux
+          - os: macos-latest
+            artifact_name: target/release/svg2pdf
+            asset_name: svg2pdf-macos
+          - os: windows-latest
+            artifact_name: svg2pdf-windows.exe
+            asset_name: svg2pdf-windows.exe
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Cache cargo
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build project
+        run: cargo build --release --locked
+
+      - name: Setup NSIS
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          mkdir NSIS_Plugins
+          cd NSIS_Plugins
+          iwr https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip -OutFile envar_plugin.zip
+          powershell -command "if ((CertUtil -hashfile envar_plugin.zip SHA1)[1] -replace ' ','' -ne '586c52fd2f44dcf1b5b0556bbd5dd3442f9301cd') { exit 1 }"
+          tar -xf envar_plugin.zip
+          rm envar_plugin.zip
+      - name: Create installer
+        uses: joncloud/makensis-action@v2.0
+        if: startsWith(matrix.os, 'windows')
+        with:
+          additional-plugin-paths: ${{ github.workspace }}/NSIS_Plugins/Plugins/
+          script-file: ${{ github.workspace }}/installer.nsi
+
+      - name: Upload binary to release
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ matrix.artifact_name }}
+          asset_name: ${{ matrix.asset_name }}
+          tag: ${{ github.event.release.tag_name }}
